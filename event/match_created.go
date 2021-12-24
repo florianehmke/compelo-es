@@ -13,6 +13,10 @@ type MatchCreated struct {
 	GUID        string `json:"guid"`
 	GameGUID    string `json:"gameGuid"`
 	ProjectGUID string `json:"projectGuid"`
+	Teams       []struct {
+		PlayerGUIDs []string
+		Score       int
+	} `json:"teams"`
 }
 
 func (e *MatchCreated) EventType() EventType {

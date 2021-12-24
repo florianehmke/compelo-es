@@ -6,14 +6,19 @@ import (
 	"github.com/google/uuid"
 )
 
-func (c *Compelo) CreateNewPlayer(projectGUID string, name string) Response {
+type CreateNewPlayerCommand struct {
+	ProjectGUID string `json:"projectGuid"`
+	Name        string `json:"name"`
+}
+
+func (c *Compelo) CreateNewPlayer(cmd CreateNewPlayerCommand) Response {
 	// TODO: Check if name is already taken.
 
 	guid := uuid.New().String()
 	c.raise(&event.PlayerCreated{
 		GUID:        guid,
-		ProjectGUID: projectGUID,
-		Name:        name,
+		ProjectGUID: cmd.ProjectGUID,
+		Name:        cmd.Name,
 	})
 	return Response{GUID: guid}
 }

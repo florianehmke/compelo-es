@@ -34,14 +34,39 @@ func Test(t *testing.T) {
 }
 
 func testBasicWorkflow(t *testing.T, c *command.Compelo) {
-	projectGUID := c.CreateNewProject("Second Project").GUID
+	// 1. Create a project.
+	projectGUID := c.CreateNewProject(command.CreateNewProjectCommand{
+		Name: "Project 1",
+	}).GUID
 
-	player1GUID := c.CreateNewPlayer(projectGUID, "Player 1").GUID
-	player2GUID := c.CreateNewPlayer(projectGUID, "Player 2").GUID
+	// 2. Create two players.
+	player1GUID := c.CreateNewPlayer(command.CreateNewPlayerCommand{
+		Name:        "Player 1",
+		ProjectGUID: projectGUID,
+	}).GUID
+	player2GUID := c.CreateNewPlayer(command.CreateNewPlayerCommand{
+		Name:        "Player 2",
+		ProjectGUID: projectGUID,
+	}).GUID
 
-	gameGUID := c.CreateNewGame(projectGUID, "Game 1").GUID
+	// 3. Create a game.
+	gameGUID := c.CreateNewGame(command.CreateNewGameCommand{
+		Name:        "Game 1",
+		ProjectGUID: projectGUID,
+	}).GUID
 
-	matchGUID := c.CreateNewMatch(gameGUID, projectGUID).GUID
+	// 4. Create a match.
+	matchGUID := c.CreateNewMatch(command.CreateNewMatchCommand{
+		GameGUID:    gameGUID,
+		ProjectGUID: projectGUID,
+		Teams: []struct {
+			PlayerGUIDs []string
+			Score       int
+		}{
+			{Score: 1, PlayerGUIDs: []string{player1GUID}},
+			{Score: 2, PlayerGUIDs: []string{player2GUID}},
+		},
+	}).GUID
 
 	if projectGUID == "" || player1GUID == "" || player2GUID == "" || gameGUID == "" || matchGUID == "" {
 		t.Error("Projects in command should be 2")
