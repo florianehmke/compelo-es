@@ -22,7 +22,7 @@ func (e *ProjectCreated) UnmarshalFn() func([]byte) Event {
 	return func(data []byte) Event {
 		var e ProjectCreated
 		if err := json.Unmarshal(data, &e); err != nil {
-			log.Fatal(err)
+			log.Fatal(err) // TODO: Handle me.
 		}
 		return &e
 	}

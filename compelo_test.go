@@ -5,6 +5,7 @@ import (
 	"compelo/event"
 	"compelo/query"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
@@ -12,14 +13,35 @@ import (
 func Test(t *testing.T) {
 	log.Println("Starting Test")
 
-	bus := event.NewEventBus()
-	query.New(bus)
-	store := event.CreateEventStore(bus)
+	// Create event store.
+	os.Remove("test.db")
+	bus := event.NewBus()
+	store := event.NewStore(bus, "test.db")
+
+	// Simulate some prior events.
+	store.StoreEvent(&event.ProjectCreated{GUID: "guid", Name: "First Project"})
+	store.StoreEvent(&event.ProjectRenamed{GUID: "guid", NewName: "First Project (New Name)"})
+
+	// Setup query.
+	query := query.New(bus)
+
+	// Load all events from db (rehydrates queries).
 	events := store.LoadEvents()
 
+	// Setup command (from existing events).
 	command := command.New(store, events)
 
-	command.CreateNew("Test")
+	// Simulate interaction with command.
+	command.CreateNew("Second Project")
 
-	time.Sleep(3)
+	// Give query time to catch up.
+	time.Sleep(time.Second * 1)
+
+	if len(command.Projects()) != 2 {
+		t.Error("Projects in command should be 2")
+	}
+
+	if len(query.Projects()) != 2 {
+		t.Error("Projects in query should be 2")
+	}
 }

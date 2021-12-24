@@ -30,14 +30,14 @@ type Compelo struct {
 
 	changes []event.Event
 	version int
-	store   *event.EventStore
+	store   *event.Store
 }
 
 func (p *Compelo) Projects() map[string]Project {
 	return p.projects
 }
 
-func New(store *event.EventStore, events []event.Event) *Compelo {
+func New(store *event.Store, events []event.Event) *Compelo {
 	p := &Compelo{
 		projects: make(map[string]Project),
 		store:    store,

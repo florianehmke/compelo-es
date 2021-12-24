@@ -8,10 +8,10 @@ import (
 type Compelo struct {
 	projects map[string]Project
 
-	bus *event.EventBus
+	bus *event.Bus
 }
 
-func New(bus *event.EventBus) *Compelo {
+func New(bus *event.Bus) *Compelo {
 	c := Compelo{
 		projects: make(map[string]Project),
 		bus:      bus,
@@ -48,4 +48,8 @@ func (c *Compelo) on(e event.Event) {
 	case *event.ProjectDeleted:
 		delete(c.projects, e.GUID)
 	}
+}
+
+func (p *Compelo) Projects() map[string]Project {
+	return p.projects
 }

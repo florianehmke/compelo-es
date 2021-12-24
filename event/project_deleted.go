@@ -21,7 +21,7 @@ func (e *ProjectDeleted) UnmarshalFn() func([]byte) Event {
 	return func(data []byte) Event {
 		var e ProjectDeleted
 		if err := json.Unmarshal(data, &e); err != nil {
-			log.Fatal(err)
+			log.Fatal(err) // TODO: Handle me.
 		}
 		return &e
 	}

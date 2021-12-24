@@ -5,19 +5,19 @@ import (
 	"sync"
 )
 
-type EventBus struct {
+type Bus struct {
 	mu     sync.RWMutex
 	subs   []chan Event
 	closed bool
 }
 
-func NewEventBus() *EventBus {
-	bus := &EventBus{}
+func NewBus() *Bus {
+	bus := &Bus{}
 	bus.subs = []chan Event{}
 	return bus
 }
 
-func (bus *EventBus) Publish(event Event) {
+func (bus *Bus) Publish(event Event) {
 	bus.mu.RLock()
 	defer bus.mu.RUnlock()
 
@@ -31,16 +31,17 @@ func (bus *EventBus) Publish(event Event) {
 	}
 }
 
-func (bus *EventBus) Subscribe() <-chan Event {
+func (bus *Bus) Subscribe() <-chan Event {
 	bus.mu.Lock()
 	defer bus.mu.Unlock()
 
+	// TODO: This is far from optimal.
 	ch := make(chan Event, 100)
 	bus.subs = append(bus.subs, ch)
 	return ch
 }
 
-func (bus *EventBus) Close() {
+func (bus *Bus) Close() {
 	bus.mu.Lock()
 	defer bus.mu.Unlock()
 

@@ -14,32 +14,32 @@ type RawEvent struct {
 	EventData json.RawMessage `json:"eventData"`
 }
 
-type EventStore struct {
+type Store struct {
 	db  *bbolt.DB
-	bus *EventBus
+	bus *Bus
 
 	unmarshalFns map[EventType]func([]byte) Event
 }
 
-func CreateEventStore(bus *EventBus) *EventStore {
-	db, err := bbolt.Open("./compelo.db", 0666, nil)
+func NewStore(bus *Bus, path string) *Store {
+	db, err := bbolt.Open(path, 0666, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	store := &EventStore{db: db, bus: bus}
+	store := &Store{db: db, bus: bus}
 	store.RegisterEvents()
 	return store
 }
 
-func (s *EventStore) RegisterEvents() {
+func (s *Store) RegisterEvents() {
 	s.unmarshalFns = make(map[EventType]func([]byte) Event)
 	s.unmarshalFns[ProjectCreatedType] = (&ProjectCreated{}).UnmarshalFn()
 	s.unmarshalFns[ProjectRenamedType] = (&ProjectRenamed{}).UnmarshalFn()
 	s.unmarshalFns[ProjectDeletedType] = (&ProjectDeleted{}).UnmarshalFn()
 }
 
-func (s *EventStore) StoreEvent(event Event) {
+func (s *Store) StoreEvent(event Event) {
 	s.db.Update(func(tx *bbolt.Tx) error {
 		// Open the events bucket.
 		tx.CreateBucketIfNotExists([]byte("events"))
@@ -51,7 +51,7 @@ func (s *EventStore) StoreEvent(event Event) {
 
 		eventData, err := json.Marshal(event)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(err) // TODO: Handle me.
 		}
 
 		rawEvent := RawEvent{
@@ -62,7 +62,7 @@ func (s *EventStore) StoreEvent(event Event) {
 
 		buf, err := json.Marshal(rawEvent)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(err) // TODO: Handle me.
 		}
 		log.Println("Saving Event: " + string(buf))
 
@@ -73,7 +73,7 @@ func (s *EventStore) StoreEvent(event Event) {
 	s.bus.Publish(event)
 }
 
-func (s *EventStore) LoadEvents() []Event {
+func (s *Store) LoadEvents() []Event {
 	var events []Event
 
 	s.db.View(func(tx *bbolt.Tx) error {
@@ -85,7 +85,7 @@ func (s *EventStore) LoadEvents() []Event {
 			var rawEvent *RawEvent
 			err := json.Unmarshal(v, &rawEvent)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err) // TODO: Handle me.
 			}
 
 			event := s.unmarshalFns[rawEvent.EventType](rawEvent.EventData)
