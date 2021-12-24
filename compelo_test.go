@@ -12,9 +12,9 @@ import (
 
 func Test(t *testing.T) {
 	log.Println("Starting Test")
+	defer os.Remove("test.db")
 
 	// Create event store.
-	os.Remove("test.db")
 	bus := event.NewBus()
 	store := event.NewStore(bus, "test.db")
 
