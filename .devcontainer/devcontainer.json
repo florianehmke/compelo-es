@@ -1,0 +1,68 @@
+{
+  "name": "Compelo Workspace",
+  "dockerFile": "Dockerfile",
+  "forwardPorts": [4200, 8080],
+  "extensions": [
+    //
+    // General
+    //
+    // Filename / Path Intellisense: https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense
+    "christian-kohler.path-intellisense",
+    // GitLens: https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens
+    "eamodio.gitlens",
+    // SQL Explorer: https://marketplace.visualstudio.com/items?itemName=mtxr.sqltools
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-sqlite",
+
+    //
+    // Angular
+    //
+    // Angular Language Service: https://marketplace.visualstudio.com/items?itemName=Angular.ng-template
+    "Angular.ng-template",
+    // Angular Snippets: https://marketplace.visualstudio.com/items?itemName=johnpapa.Angular2
+    "johnpapa.angular2",
+    // NPM Support: https://marketplace.visualstudio.com/items?itemName=eg2.vscode-npm-script
+    "eg2.vscode-npm-script",
+    // Prettier: https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+    "esbenp.prettier-vscode",
+    // ESLINT: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+    "dbaeumer.vscode-eslint",
+
+    //
+    // Go
+    //
+    "golang.Go"
+  ],
+  "remoteUser": "node",
+  "settings": {
+    // SQL Tools
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+      {
+        "previewLimit": 50,
+        "driver": "SQLite",
+        "name": "Local",
+        "database": "db.sql"
+      }
+    ],
+    "sqltools.dependencyManager": {
+      "packageManager": "/usr/local/bin/npm",
+      "installArgs": ["--registry=https://registry.npmjs.org/", "install"],
+      "runScriptArgs": ["run"],
+      "autoAccept": true
+    },
+    // Eslint + Prettier
+    "eslint.workingDirectories": [ "./frontend/compelo" ],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "[typescript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+  }
+}
