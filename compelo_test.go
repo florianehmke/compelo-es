@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 )
 
 func Test(t *testing.T) {
@@ -18,12 +17,11 @@ func Test(t *testing.T) {
 	bus := event.NewBus()
 	store := event.NewStore(bus, "test.db")
 
-	// Simulate some prior events.
+	// Simulate some prior events to ensure re-hydration works.
 	store.StoreEvent(&event.ProjectCreated{GUID: "guid", Name: "First Project"})
-	store.StoreEvent(&event.ProjectRenamed{GUID: "guid", NewName: "First Project (New Name)"})
 
 	// Setup query.
-	query := query.New(bus)
+	query.New(bus)
 
 	// Load all events from db (rehydrates queries).
 	events := store.LoadEvents()
@@ -32,16 +30,21 @@ func Test(t *testing.T) {
 	command := command.New(store, events)
 
 	// Simulate interaction with command.
-	command.CreateNew("Second Project")
+	testBasicWorkflow(t, command)
+}
 
-	// Give query time to catch up.
-	time.Sleep(time.Second * 1)
+func testBasicWorkflow(t *testing.T, c *command.Compelo) {
+	projectGUID := c.CreateNewProject("Second Project").GUID
 
-	if len(command.Projects()) != 2 {
+	player1GUID := c.CreateNewPlayer(projectGUID, "Player 1").GUID
+	player2GUID := c.CreateNewPlayer(projectGUID, "Player 2").GUID
+
+	gameGUID := c.CreateNewGame(projectGUID, "Game 1").GUID
+
+	matchGUID := c.CreateNewMatch(gameGUID, projectGUID).GUID
+
+	if projectGUID == "" || player1GUID == "" || player2GUID == "" || gameGUID == "" || matchGUID == "" {
 		t.Error("Projects in command should be 2")
 	}
-
-	if len(query.Projects()) != 2 {
-		t.Error("Projects in query should be 2")
-	}
+	log.Println("Finished!")
 }

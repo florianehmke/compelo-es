@@ -35,8 +35,9 @@ func NewStore(bus *Bus, path string) *Store {
 func (s *Store) RegisterEvents() {
 	s.unmarshalFns = make(map[EventType]func([]byte) Event)
 	s.unmarshalFns[ProjectCreatedType] = (&ProjectCreated{}).UnmarshalFn()
-	s.unmarshalFns[ProjectRenamedType] = (&ProjectRenamed{}).UnmarshalFn()
-	s.unmarshalFns[ProjectDeletedType] = (&ProjectDeleted{}).UnmarshalFn()
+	s.unmarshalFns[GameCreatedType] = (&GameCreated{}).UnmarshalFn()
+	s.unmarshalFns[PlayerCreatedType] = (&PlayerCreated{}).UnmarshalFn()
+	s.unmarshalFns[MatchCreatedType] = (&MatchCreated{}).UnmarshalFn()
 }
 
 func (s *Store) StoreEvent(event Event) {

@@ -40,13 +40,6 @@ func (c *Compelo) on(e event.Event) {
 			GUID: e.GUID,
 			Name: e.Name,
 		}
-	case *event.ProjectRenamed:
-		if project, ok := c.projects[e.GUID]; ok {
-			project.Name = e.NewName
-			c.projects[e.GUID] = project
-		}
-	case *event.ProjectDeleted:
-		delete(c.projects, e.GUID)
 	}
 }
 
