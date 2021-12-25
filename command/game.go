@@ -2,8 +2,9 @@ package command
 
 type game struct {
 	guid        string
-	name        string
 	projectGUID string
+
+	name string
 
 	matches map[string]match
 }

@@ -1,13 +1,9 @@
 package query
 
-func (c *Compelo) GetAllProjects() []Project {
-	c.RLock()
-	defer c.RUnlock()
+type Project struct {
+	GUID string `json:"guid"`
+	Name string `json:"name"`
 
-	list := make([]Project, 0, len(c.projects))
-	for _, value := range c.projects {
-		list = append(list, value)
-	}
-
-	return list
+	players map[string]Player
+	games   map[string]Game
 }

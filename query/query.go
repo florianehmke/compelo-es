@@ -29,11 +29,6 @@ func New(bus *event.Bus) *Compelo {
 	return &c
 }
 
-type Project struct {
-	GUID string `json:"guid"`
-	Name string `json:"name"`
-}
-
 func (c *Compelo) on(e event.Event) {
 	c.Lock()
 	defer c.Unlock()

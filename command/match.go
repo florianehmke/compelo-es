@@ -4,7 +4,8 @@ type match struct {
 	guid        string
 	gameGUID    string
 	projectGUID string
-	teams       []team
+
+	teams []team
 }
 
 type team struct {

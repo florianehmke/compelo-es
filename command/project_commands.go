@@ -10,7 +10,7 @@ import (
 
 type CreateNewProjectCommand struct {
 	Name     string `json:"name"`
-	Password string `json:"password`
+	Password string `json:"password"`
 }
 
 func (c *Compelo) CreateNewProject(cmd CreateNewProjectCommand) Response {

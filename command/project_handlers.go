@@ -8,6 +8,6 @@ func (c *Compelo) handleProjectCreated(e *event.ProjectCreated) {
 		name:         e.Name,
 		passwordHash: e.PasswordHash,
 		games:        make(map[string]game),
-		players:      make(map[string]Player),
+		players:      make(map[string]player),
 	}
 }

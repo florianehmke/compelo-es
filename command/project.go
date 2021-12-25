@@ -2,11 +2,12 @@ package command
 
 // Project is a single project in compelo.
 type Project struct {
-	guid         string
+	guid string
+
 	name         string
 	passwordHash []byte
 
-	players map[string]Player
+	players map[string]player
 	games   map[string]game
 }
 

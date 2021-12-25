@@ -1,7 +1,8 @@
 package command
 
-type Player struct {
+type player struct {
 	guid        string
-	name        string
 	projectGUID string
+
+	name string
 }
