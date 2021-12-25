@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 func Test(t *testing.T) {
@@ -21,7 +22,7 @@ func Test(t *testing.T) {
 	store.StoreEvent(&event.ProjectCreated{GUID: "guid", Name: "First Project"})
 
 	// Setup query.
-	query.New(bus)
+	query := query.New(bus)
 
 	// Load all events from db (rehydrates queries).
 	events := store.LoadEvents()
@@ -30,10 +31,10 @@ func Test(t *testing.T) {
 	command := command.New(store, events)
 
 	// Simulate interaction with command.
-	testBasicWorkflow(t, command)
+	testBasicWorkflow(t, command, query)
 }
 
-func testBasicWorkflow(t *testing.T, c *command.Compelo) {
+func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	// 1. Create a project.
 	projectGUID := c.CreateNewProject(command.CreateNewProjectCommand{
 		Name: "Project 1",
@@ -69,7 +70,16 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo) {
 	}).GUID
 
 	if projectGUID == "" || player1GUID == "" || player2GUID == "" || gameGUID == "" || matchGUID == "" {
-		t.Error("Projects in command should be 2")
+		t.Error("Fatal error...")
 	}
+
+	time.Sleep(time.Second * 1)
+
+	projects := q.GetAllProjects()
+	if len(projects) != 2 {
+		t.Error("Projects in query should be 2")
+	}
+	log.Println(projects)
+
 	log.Println("Finished!")
 }
