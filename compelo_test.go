@@ -80,9 +80,9 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	assert.NotEmpty(t, gameGUID)
 	assert.NotEmpty(t, matchGUID)
 
-	assert.Len(t, q.GetAllProjects(), 2)
-	assert.Len(t, q.GetAllPlayers(projectGUID), 2)
-	assert.Len(t, q.GetAllGames(projectGUID), 1)
+	assert.Len(t, q.GetProjects(), 2)
+	assert.Len(t, q.GetPlayersBy(projectGUID), 2)
+	assert.Len(t, q.GetGamesBy(projectGUID), 1)
 
 	project := q.GetProjectBy(projectGUID)
 	game := q.GetGameBy(projectGUID, gameGUID)

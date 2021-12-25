@@ -1,6 +1,6 @@
 package query
 
-func (c *Compelo) GetAllPlayers(projectGUID string) []Player {
+func (c *Compelo) GetPlayersBy(projectGUID string) []Player {
 	c.RLock()
 	defer c.RUnlock()
 

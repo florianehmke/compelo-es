@@ -1,6 +1,6 @@
 package query
 
-func (c *Compelo) GetAllProjects() []Project {
+func (c *Compelo) GetProjects() []Project {
 	c.RLock()
 	defer c.RUnlock()
 
