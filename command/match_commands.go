@@ -2,6 +2,7 @@ package command
 
 import (
 	"compelo/event"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -24,6 +25,7 @@ func (c *Compelo) CreateNewMatch(cmd CreateNewMatchCommand) Response {
 		GUID:        guid,
 		GameGUID:    cmd.GameGUID,
 		ProjectGUID: cmd.ProjectGUID,
+		Date:        time.Now(),
 		Teams:       cmd.Teams,
 	})
 	return Response{GUID: guid}

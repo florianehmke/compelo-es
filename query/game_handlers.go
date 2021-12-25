@@ -7,5 +7,6 @@ func (c *Compelo) handleGameCreated(e *event.GameCreated) {
 		GUID:        e.GUID,
 		ProjectGUID: e.ProjectGUID,
 		Name:        e.Name,
+		matches:     make(map[string]Match),
 	}
 }

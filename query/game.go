@@ -6,5 +6,5 @@ type Game struct {
 
 	Name string `json:"name"`
 
-	matches []Match
+	matches map[string]Match
 }

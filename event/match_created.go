@@ -3,6 +3,7 @@ package event
 import (
 	"encoding/json"
 	"log"
+	"time"
 )
 
 const MatchCreatedType EventType = "MatchCreated"
@@ -10,9 +11,10 @@ const MatchCreatedType EventType = "MatchCreated"
 // MatchCreated event.
 type MatchCreated struct {
 	EventMetaData
-	GUID        string `json:"guid"`
-	GameGUID    string `json:"gameGuid"`
-	ProjectGUID string `json:"projectGuid"`
+	GUID        string    `json:"guid"`
+	GameGUID    string    `json:"gameGuid"`
+	ProjectGUID string    `json:"projectGuid"`
+	Date        time.Time `json:"date" ts_type:"string"`
 	Teams       []struct {
 		PlayerGUIDs []string
 		Score       int

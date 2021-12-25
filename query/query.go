@@ -42,5 +42,7 @@ func (c *Compelo) on(e event.Event) {
 		c.handleGameCreated(e)
 	case *event.PlayerCreated:
 		c.handlePlayerCreated(e)
+	case *event.MatchCreated:
+		c.handleMatchCreated(e)
 	}
 }
