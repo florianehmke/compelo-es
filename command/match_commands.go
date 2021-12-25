@@ -16,6 +16,9 @@ type CreateNewMatchCommand struct {
 }
 
 func (c *Compelo) CreateNewMatch(cmd CreateNewMatchCommand) Response {
+	c.Lock()
+	defer c.Unlock()
+
 	guid := uuid.New().String()
 	c.raise(&event.MatchCreated{
 		GUID:        guid,

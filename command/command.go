@@ -3,12 +3,13 @@ package command
 import (
 	"compelo/event"
 	"log"
+	"sync"
 )
 
-// Compelo is the root aggregate.
 type Compelo struct {
 	projects map[string]Project
 
+	sync.RWMutex
 	changes []event.Event
 	version int
 	store   *event.Store
@@ -32,7 +33,6 @@ func New(store *event.Store, events []event.Event) *Compelo {
 	return p
 }
 
-// on handles projects events on the projects aggregate.
 func (c *Compelo) on(e event.Event) {
 	log.Println("Command handling event ", e.GetID(), e.EventType())
 

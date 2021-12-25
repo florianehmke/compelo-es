@@ -3,11 +3,13 @@ package query
 import (
 	"compelo/event"
 	"log"
+	"sync"
 )
 
 type Compelo struct {
 	projects map[string]Project
 
+	sync.RWMutex
 	bus *event.Bus
 }
 
@@ -33,7 +35,11 @@ type Project struct {
 }
 
 func (c *Compelo) on(e event.Event) {
+	c.Lock()
+	defer c.Unlock()
+
 	log.Println("Query handling event ", e.GetID(), e.EventType())
+
 	switch e := e.(type) {
 	case *event.ProjectCreated:
 		c.projects[e.GUID] = Project{

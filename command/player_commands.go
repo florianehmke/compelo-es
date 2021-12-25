@@ -12,6 +12,9 @@ type CreateNewPlayerCommand struct {
 }
 
 func (c *Compelo) CreateNewPlayer(cmd CreateNewPlayerCommand) Response {
+	c.Lock()
+	defer c.Unlock()
+
 	// TODO: Check if name is already taken.
 
 	guid := uuid.New().String()

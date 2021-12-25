@@ -11,6 +11,9 @@ type CreateNewProjectCommand struct {
 }
 
 func (c *Compelo) CreateNewProject(cmd CreateNewProjectCommand) Response {
+	c.Lock()
+	defer c.Unlock()
+
 	// TODO: Check if name is already taken.
 
 	guid := uuid.New().String()
