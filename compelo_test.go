@@ -8,6 +8,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test(t *testing.T) {
@@ -69,17 +71,33 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 		},
 	}).GUID
 
-	if projectGUID == "" || player1GUID == "" || player2GUID == "" || gameGUID == "" || matchGUID == "" {
-		t.Error("Fatal error...")
-	}
-
 	time.Sleep(time.Second * 1)
 
-	projects := q.GetAllProjects()
-	if len(projects) != 2 {
-		t.Error("Projects in query should be 2")
-	}
-	log.Println(projects)
+	// Check stuff...
+	assert.NotEmpty(t, projectGUID)
+	assert.NotEmpty(t, player1GUID)
+	assert.NotEmpty(t, player2GUID)
+	assert.NotEmpty(t, gameGUID)
+	assert.NotEmpty(t, matchGUID)
 
-	log.Println("Finished!")
+	assert.Len(t, q.GetAllProjects(), 2)
+	assert.Len(t, q.GetAllPlayers(projectGUID), 2)
+	assert.Len(t, q.GetAllGames(projectGUID), 1)
+
+	project := q.GetProjectBy(projectGUID)
+	game := q.GetGameBy(projectGUID, gameGUID)
+	player1 := q.GetPlayerBy(projectGUID, player1GUID)
+	player2 := q.GetPlayerBy(projectGUID, player2GUID)
+
+	assert.NotEmpty(t, project)
+	assert.Equal(t, project.Name, "Project 1")
+
+	assert.NotEmpty(t, game)
+	assert.Equal(t, game.Name, "Game 1")
+
+	assert.NotEmpty(t, player1)
+	assert.Equal(t, player1.Name, "Player 1")
+
+	assert.NotEmpty(t, player2)
+	assert.Equal(t, player2.Name, "Player 2")
 }

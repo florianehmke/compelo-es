@@ -44,7 +44,3 @@ func (c *Compelo) on(e event.Event) {
 		c.handlePlayerCreated(e)
 	}
 }
-
-func (p *Compelo) Projects() map[string]Project {
-	return p.projects
-}

@@ -11,3 +11,11 @@ func (c *Compelo) GetAllProjects() []Project {
 
 	return list
 }
+
+func (c *Compelo) GetProjectBy(projectGUID string) Project {
+	c.RLock()
+	defer c.RUnlock()
+
+	// TODO: Handle not found
+	return c.projects[projectGUID]
+}

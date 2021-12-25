@@ -11,3 +11,11 @@ func (c *Compelo) GetAllPlayers(projectGUID string) []Player {
 
 	return list
 }
+
+func (c *Compelo) GetPlayerBy(projectGUID string, playerGUID string) Player {
+	c.RLock()
+	defer c.RUnlock()
+
+	// TODO: Handle not found
+	return c.projects[projectGUID].players[playerGUID]
+}
