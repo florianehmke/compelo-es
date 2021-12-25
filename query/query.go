@@ -37,10 +37,11 @@ func (c *Compelo) on(e event.Event) {
 
 	switch e := e.(type) {
 	case *event.ProjectCreated:
-		c.projects[e.GUID] = Project{
-			GUID: e.GUID,
-			Name: e.Name,
-		}
+		c.handleProjectCreated(e)
+	case *event.GameCreated:
+		c.handleGameCreated(e)
+	case *event.PlayerCreated:
+		c.handlePlayerCreated(e)
 	}
 }
 
