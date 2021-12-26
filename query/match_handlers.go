@@ -16,11 +16,14 @@ func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
 		})
 	}
 
-	c.projects[e.ProjectGUID].games[e.GameGUID].matches[e.GUID] = Match{
+	match := Match{
 		GUID:        e.GUID,
 		GameGUID:    e.GameGUID,
 		ProjectGUID: e.ProjectGUID,
 		Date:        e.Date,
 		Teams:       teams,
 	}
+	match.determineResult()
+
+	c.projects[e.ProjectGUID].games[e.GameGUID].matches[e.GUID] = match
 }

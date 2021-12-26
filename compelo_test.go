@@ -112,4 +112,8 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	assert.Len(t, match.Teams, 2)
 	assert.Len(t, match.Teams[0].Players, 1)
 	assert.Len(t, match.Teams[1].Players, 1)
+	assert.Equal(t, match.Teams[0].Score, 1)
+	assert.Equal(t, match.Teams[0].Result, query.Loss)
+	assert.Equal(t, match.Teams[1].Score, 2)
+	assert.Equal(t, match.Teams[0].Result, query.Loss)
 }
