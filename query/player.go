@@ -5,4 +5,6 @@ type Player struct {
 	ProjectGUID string `json:"projectGuid"`
 
 	Name string `json:"name"`
+
+	ratings map[string]Rating
 }

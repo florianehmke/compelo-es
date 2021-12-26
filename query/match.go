@@ -16,13 +16,14 @@ type Match struct {
 	ProjectGUID string `json:"projectGuid"`
 
 	Date  time.Time `json:"date" ts_type:"string"`
-	Teams []Team
+	Teams []Team    `json:"teams"`
 }
 
 type Team struct {
-	Players []Player `json:"players"`
-	Score   int
-	Result  Result
+	Players     []Player    `json:"players"`
+	Score       int         `json:"score"`
+	Result      Result      `json:"result"`
+	RatingDelta interface{} `json:"ratingDelta"`
 }
 
 func (m *Match) determineResult() {
