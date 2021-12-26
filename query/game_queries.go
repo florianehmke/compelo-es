@@ -6,7 +6,7 @@ func (c *Compelo) GetGamesBy(projectGUID string) []Game {
 
 	list := make([]Game, 0, len(c.projects[projectGUID].games))
 	for _, value := range c.projects[projectGUID].games {
-		list = append(list, value)
+		list = append(list, *value)
 	}
 
 	return list
@@ -17,5 +17,5 @@ func (c *Compelo) GetGameBy(projectGUID string, gameGUID string) Game {
 	defer c.RUnlock()
 
 	// TODO: Handle not found
-	return c.projects[projectGUID].games[gameGUID]
+	return *c.projects[projectGUID].games[gameGUID]
 }

@@ -6,9 +6,5 @@ type Player struct {
 
 	Name string `json:"name"`
 
-	ratings map[string]Rating
-}
-
-func (p *Player) updateRating(gameGUID string, rating Rating) {
-	p.ratings[gameGUID] = rating
+	ratings map[string]*Rating
 }

@@ -19,14 +19,14 @@ type Match struct {
 	ProjectGUID string `json:"projectGuid"`
 
 	Date  time.Time `json:"date" ts_type:"string"`
-	Teams []Team    `json:"teams"`
+	Teams []*Team   `json:"teams"`
 }
 
 type Team struct {
-	Players     []Player `json:"players"`
-	Score       int      `json:"score"`
-	Result      Result   `json:"result"`
-	RatingDelta int      `json:"ratingDelta"`
+	Players     []*Player `json:"players"`
+	Score       int       `json:"score"`
+	Result      Result    `json:"result"`
+	RatingDelta int       `json:"ratingDelta"`
 }
 
 func (m *Match) determineResult() {
@@ -55,12 +55,12 @@ func (m *Match) determineResult() {
 	}
 }
 
-func (m *Match) calculateTeamElo(ratings map[string]int) {
+func (m *Match) calculateTeamElo(ratings map[string]*Rating) {
 	rm := rating.NewRatedMatch()
 	for i, t := range m.Teams {
 		sum := 0
 		for _, p := range t.Players {
-			sum += ratings[p.GUID]
+			sum += ratings[p.GUID].Current
 		}
 		avg := sum / len(t.Players)
 
@@ -73,5 +73,13 @@ func (m *Match) calculateTeamElo(ratings map[string]int) {
 
 	for i := range m.Teams {
 		m.Teams[i].RatingDelta = rm.GetRatingDelta(i)
+	}
+}
+
+func (m *Match) updatePlayerRatings(ratings map[string]*Rating) {
+	for _, team := range m.Teams {
+		for _, player := range team.Players {
+			player.ratings[m.GameGUID].Current += team.RatingDelta
+		}
 	}
 }
