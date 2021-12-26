@@ -7,7 +7,7 @@ import (
 )
 
 type Compelo struct {
-	projects map[string]Project
+	projects map[string]*Project
 
 	sync.RWMutex
 	bus *event.Bus
@@ -15,7 +15,7 @@ type Compelo struct {
 
 func New(bus *event.Bus) *Compelo {
 	c := Compelo{
-		projects: make(map[string]Project),
+		projects: make(map[string]*Project),
 		bus:      bus,
 	}
 

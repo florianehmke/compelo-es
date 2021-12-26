@@ -1,10 +1,14 @@
 package query
 
-func (c *Compelo) GetProjects() []Project {
+import "errors"
+
+var ErrProjectNotFound = errors.New("Project not found")
+
+func (c *Compelo) GetProjects() []*Project {
 	c.RLock()
 	defer c.RUnlock()
 
-	list := make([]Project, 0, len(c.projects))
+	list := make([]*Project, 0, len(c.projects))
 	for _, value := range c.projects {
 		list = append(list, value)
 	}
@@ -12,10 +16,16 @@ func (c *Compelo) GetProjects() []Project {
 	return list
 }
 
-func (c *Compelo) GetProjectBy(projectGUID string) Project {
+func (c *Compelo) GetProjectBy(projectGUID string) (*Project, error) {
 	c.RLock()
 	defer c.RUnlock()
 
-	// TODO: Handle not found
-	return c.projects[projectGUID]
+	return c.getProjectBy(projectGUID)
+}
+
+func (c *Compelo) getProjectBy(projectGUID string) (*Project, error) {
+	if project, ok := c.projects[projectGUID]; ok {
+		return project, nil
+	}
+	return nil, ErrProjectNotFound
 }

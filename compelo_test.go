@@ -85,7 +85,9 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	assert.Len(t, q.GetGamesBy(projectGUID), 1)
 	assert.Len(t, q.GetMatchesBy(projectGUID, gameGUID), 1)
 
-	project := q.GetProjectBy(projectGUID)
+	project, err := q.GetProjectBy(projectGUID)
+	assert.Nil(t, err)
+
 	game := q.GetGameBy(projectGUID, gameGUID)
 	player1 := q.GetPlayerBy(projectGUID, player1GUID)
 	player2 := q.GetPlayerBy(projectGUID, player2GUID)
