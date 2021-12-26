@@ -13,8 +13,6 @@ type Handler interface {
 type Compelo struct {
 	projects map[string]Project
 
-	handlers []Handler
-
 	sync.RWMutex
 	bus *event.Bus
 }
@@ -25,17 +23,10 @@ func New(bus *event.Bus) *Compelo {
 		bus:      bus,
 	}
 
-	c.handlers = []Handler{&RatingHandler{&c}}
-
 	channel := bus.Subscribe()
 	go func() {
 		for event := range channel {
 			c.on(event)
-
-			// Send event to other handlers aswell.
-			for _, h := range c.handlers {
-				h.on(event)
-			}
 		}
 	}()
 

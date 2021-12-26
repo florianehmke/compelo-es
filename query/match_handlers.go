@@ -1,6 +1,8 @@
 package query
 
-import "compelo/event"
+import (
+	"compelo/event"
+)
 
 func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
 	var teams []Team
@@ -23,7 +25,9 @@ func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
 		Date:        e.Date,
 		Teams:       teams,
 	}
+
 	match.determineResult()
+	match.calculateTeamElo(c)
 
 	c.projects[e.ProjectGUID].games[e.GameGUID].matches[e.GUID] = match
 }

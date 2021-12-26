@@ -1,6 +1,9 @@
 package query
 
-import "time"
+import (
+	"compelo/rating"
+	"time"
+)
 
 type Result string
 
@@ -49,5 +52,30 @@ func (m *Match) determineResult() {
 		for i := range m.Teams {
 			m.Teams[i].Result = Draw
 		}
+	}
+}
+
+func (m *Match) calculateTeamElo(c *Compelo) {
+	rm := rating.NewRatedMatch()
+	for i, t := range m.Teams {
+		sum := 0
+		for _, p := range t.Players {
+			r := c.getRatingBy(m.ProjectGUID, p.GUID, m.GameGUID)
+			if r.Current == 0 {
+				r.Current = rating.InitialRating
+			}
+			sum += r.Current
+		}
+		avg := sum / len(t.Players)
+
+		// The rating service expects a "rank" to sort players.
+		// Here we just use the negative score instead, should
+		// result in the same thing for most games..
+		rm.AddPlayer(i, -t.Score, avg)
+	}
+	rm.Calculate()
+
+	for i := range m.Teams {
+		m.Teams[i].RatingDelta = rm.GetRatingDelta(i)
 	}
 }
