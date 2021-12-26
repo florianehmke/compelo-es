@@ -28,6 +28,10 @@ func (c *Compelo) GetPlayerBy(projectGUID string, playerGUID string) (*Player, e
 	c.RLock()
 	defer c.RUnlock()
 
+	return c.getPlayerBy(projectGUID, playerGUID)
+}
+
+func (c *Compelo) getPlayerBy(projectGUID string, playerGUID string) (*Player, error) {
 	project, err := c.getProjectBy(projectGUID)
 	if err != nil {
 		return nil, fmt.Errorf("get player failed: %w", err)

@@ -1,25 +1,26 @@
 package query
 
-import "compelo/rating"
+import (
+	"fmt"
+)
 
-func (c *Compelo) GetRatingBy(projectGUID string, playerGUID string, gameGUID string) Rating {
+func (c *Compelo) GetRatingBy(projectGUID string, playerGUID string, gameGUID string) (*Rating, error) {
 	c.RLock()
 	defer c.RUnlock()
 
-	return *c.getRatingBy(projectGUID, playerGUID, gameGUID)
+	return c.getRatingBy(projectGUID, playerGUID, gameGUID)
 }
 
-func (c *Compelo) getRatingBy(projectGUID string, playerGUID string, gameGUID string) *Rating {
-	// TODO: Handle not found
-
-	r := c.projects[projectGUID].players[playerGUID].ratings[gameGUID]
-	if r == nil {
-		r = &Rating{
-			PlayerGUID: playerGUID,
-			GameGUID:   gameGUID,
-			Current:    rating.InitialRating,
-		}
-		c.projects[projectGUID].players[playerGUID].ratings[gameGUID] = r
+func (c *Compelo) getRatingBy(projectGUID string, playerGUID string, gameGUID string) (*Rating, error) {
+	player, err := c.getPlayerBy(projectGUID, playerGUID)
+	if err != nil {
+		return nil, fmt.Errorf("get rating failed: %w", err)
 	}
-	return r
+
+	if r, ok := player.ratings[gameGUID]; ok {
+		return r, nil
+	} else {
+		player.ratings[gameGUID] = initialRatingFor(playerGUID, gameGUID)
+		return player.ratings[gameGUID], nil
+	}
 }

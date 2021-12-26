@@ -18,14 +18,14 @@ type basicProject struct {
 	projectGuid string
 	gameName    string
 	gameGuid    string
-	player1Name string
-	player1Guid string
-	player2Name string
-	player2Guid string
+	players     []*basicPlayer
+	matchGuid   string
+}
 
-	matchGuid    string
-	player1Score int
-	player2Score int
+type basicPlayer struct {
+	guid  string
+	name  string
+	score int
 }
 
 func Test(t *testing.T) {
@@ -56,11 +56,10 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	var testProject = basicProject{
 		projectName: "Project 1",
 		gameName:    "Game 1",
-		player1Name: "Player 1",
-		player2Name: "Player 2",
-
-		player1Score: 1,
-		player2Score: 2,
+		players: []*basicPlayer{
+			{name: "Player 1", score: 1},
+			{name: "Player 2", score: 2},
+		},
 	}
 
 	// 1. Create a project.
@@ -69,14 +68,12 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	}).GUID
 
 	// 2. Create two players.
-	testProject.player1Guid = c.CreateNewPlayer(command.CreateNewPlayerCommand{
-		Name:        testProject.player1Name,
-		ProjectGUID: testProject.projectGuid,
-	}).GUID
-	testProject.player2Guid = c.CreateNewPlayer(command.CreateNewPlayerCommand{
-		Name:        testProject.player2Name,
-		ProjectGUID: testProject.projectGuid,
-	}).GUID
+	for _, p := range testProject.players {
+		p.guid = c.CreateNewPlayer(command.CreateNewPlayerCommand{
+			Name:        p.name,
+			ProjectGUID: testProject.projectGuid,
+		}).GUID
+	}
 
 	// 3. Create a game.
 	testProject.gameGuid = c.CreateNewGame(command.CreateNewGameCommand{
@@ -92,8 +89,8 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 			PlayerGUIDs []string
 			Score       int
 		}{
-			{Score: testProject.player1Score, PlayerGUIDs: []string{testProject.player1Guid}},
-			{Score: testProject.player2Score, PlayerGUIDs: []string{testProject.player1Guid}},
+			{Score: testProject.players[0].score, PlayerGUIDs: []string{testProject.players[0].guid}},
+			{Score: testProject.players[1].score, PlayerGUIDs: []string{testProject.players[1].guid}},
 		},
 	}).GUID
 
@@ -106,8 +103,8 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 
 func checkCommandResults(t *testing.T, testProject basicProject) {
 	assert.NotEmpty(t, testProject.projectGuid)
-	assert.NotEmpty(t, testProject.player1Guid)
-	assert.NotEmpty(t, testProject.player2Guid)
+	assert.NotEmpty(t, testProject.players[0].guid)
+	assert.NotEmpty(t, testProject.players[1].guid)
 	assert.NotEmpty(t, testProject.gameGuid)
 	assert.NotEmpty(t, testProject.matchGuid)
 }
@@ -120,8 +117,10 @@ func checkQuery(t *testing.T, q *query.Compelo, testProject basicProject) {
 
 	checkQueryGetProjectBy(t, q, testProject)
 	checkQueryGetGameBy(t, q, testProject)
-	// player1 := q.GetPlayerBy(projectGUID, player1GUID)
-	// player2 := q.GetPlayerBy(projectGUID, player2GUID)
+	checkQueryGetPlayerBy(t, q, testProject)
+	checkQueryGetMatchBy(t, q, testProject)
+	checkQueryGetRatingBy(t, q, testProject)
+
 	// match := q.GetMatchBy(projectGUID, gameGUID, matchGUID)
 	// ratingPlayer1 := q.GetRatingBy(projectGUID, player1GUID, gameGUID)
 	// ratingPlayer2 := q.GetRatingBy(projectGUID, player2GUID, gameGUID)
@@ -222,4 +221,63 @@ func checkQueryGetGameBy(t *testing.T, q *query.Compelo, testProject basicProjec
 	game, err = q.GetGameBy(testProject.projectGuid, "404")
 	assert.Nil(t, game)
 	assert.True(t, errors.Is(err, query.ErrGameNotFound))
+}
+
+func checkQueryGetPlayerBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	for _, p := range testProject.players {
+		player, err := q.GetPlayerBy(testProject.projectGuid, p.guid)
+		assert.NotNil(t, player)
+		assert.Equal(t, p.name, player.Name)
+		assert.Nil(t, err)
+
+		player, err = q.GetPlayerBy("404", testProject.gameGuid)
+		assert.Nil(t, player)
+		assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+
+		player, err = q.GetPlayerBy(testProject.projectGuid, "404")
+		assert.Nil(t, player)
+		assert.True(t, errors.Is(err, query.ErrPlayerNotFound))
+	}
+}
+
+func checkQueryGetMatchBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	match, err := q.GetMatchBy(testProject.projectGuid, testProject.gameGuid, testProject.matchGuid)
+	assert.NotNil(t, match)
+	assert.Nil(t, err)
+
+	match, err = q.GetMatchBy("404", testProject.gameGuid, testProject.matchGuid)
+	assert.Nil(t, match)
+	assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+
+	match, err = q.GetMatchBy(testProject.projectGuid, "404", testProject.matchGuid)
+	assert.Nil(t, match)
+	assert.True(t, errors.Is(err, query.ErrGameNotFound))
+
+	match, err = q.GetMatchBy(testProject.projectGuid, testProject.gameGuid, "404")
+	assert.Nil(t, match)
+	assert.True(t, errors.Is(err, query.ErrMatchNotFound))
+}
+
+func checkQueryGetRatingBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	for i, p := range testProject.players {
+		rating, err := q.GetRatingBy(testProject.projectGuid, p.guid, testProject.gameGuid)
+		assert.NotNil(t, rating)
+		assert.Nil(t, err)
+
+		assert.Equal(t, p.guid, rating.PlayerGUID)
+
+		if i == 0 {
+			assert.Equal(t, 1484, rating.Current)
+		} else if i == 1 {
+			assert.Equal(t, 1516, rating.Current)
+		}
+
+		rating, err = q.GetRatingBy("404", p.guid, testProject.gameGuid)
+		assert.Nil(t, rating)
+		assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+
+		rating, err = q.GetRatingBy(testProject.projectGuid, "404", testProject.gameGuid)
+		assert.Nil(t, rating)
+		assert.True(t, errors.Is(err, query.ErrPlayerNotFound))
+	}
 }

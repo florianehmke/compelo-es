@@ -12,7 +12,10 @@ func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
 		var players []*Player
 		for _, guid := range t.PlayerGUIDs {
 			players = append(players, c.projects[e.ProjectGUID].players[guid])
-			ratings[guid] = c.getRatingBy(e.ProjectGUID, guid, e.GameGUID)
+
+			// error intentionally ignored here
+			rating, _ := c.getRatingBy(e.ProjectGUID, guid, e.GameGUID)
+			ratings[guid] = rating
 		}
 
 		teams = append(teams, &Team{
