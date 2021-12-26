@@ -1,8 +1,11 @@
 package query
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
-var ErrProjectNotFound = errors.New("Project not found")
+var ErrProjectNotFound = errors.New("project not found")
 
 func (c *Compelo) GetProjects() []*Project {
 	c.RLock()
@@ -27,5 +30,5 @@ func (c *Compelo) getProjectBy(projectGUID string) (*Project, error) {
 	if project, ok := c.projects[projectGUID]; ok {
 		return project, nil
 	}
-	return nil, ErrProjectNotFound
+	return nil, fmt.Errorf("get project by guid (%s) failed: %w", projectGUID, ErrProjectNotFound)
 }

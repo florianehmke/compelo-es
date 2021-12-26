@@ -4,6 +4,7 @@ import (
 	"compelo/command"
 	"compelo/event"
 	"compelo/query"
+	"errors"
 	"log"
 	"os"
 	"testing"
@@ -11,6 +12,21 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+type basicProject struct {
+	projectName string
+	projectGuid string
+	gameName    string
+	gameGuid    string
+	player1Name string
+	player1Guid string
+	player2Name string
+	player2Guid string
+
+	matchGuid    string
+	player1Score int
+	player2Score int
+}
 
 func Test(t *testing.T) {
 	log.Println("Starting Test")
@@ -37,94 +53,173 @@ func Test(t *testing.T) {
 }
 
 func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
+	var testProject = basicProject{
+		projectName: "Project 1",
+		gameName:    "Game 1",
+		player1Name: "Player 1",
+		player2Name: "Player 2",
+
+		player1Score: 1,
+		player2Score: 2,
+	}
+
 	// 1. Create a project.
-	projectGUID := c.CreateNewProject(command.CreateNewProjectCommand{
-		Name: "Project 1",
+	testProject.projectGuid = c.CreateNewProject(command.CreateNewProjectCommand{
+		Name: testProject.projectName,
 	}).GUID
 
 	// 2. Create two players.
-	player1GUID := c.CreateNewPlayer(command.CreateNewPlayerCommand{
-		Name:        "Player 1",
-		ProjectGUID: projectGUID,
+	testProject.player1Guid = c.CreateNewPlayer(command.CreateNewPlayerCommand{
+		Name:        testProject.player1Name,
+		ProjectGUID: testProject.projectGuid,
 	}).GUID
-	player2GUID := c.CreateNewPlayer(command.CreateNewPlayerCommand{
-		Name:        "Player 2",
-		ProjectGUID: projectGUID,
+	testProject.player2Guid = c.CreateNewPlayer(command.CreateNewPlayerCommand{
+		Name:        testProject.player2Name,
+		ProjectGUID: testProject.projectGuid,
 	}).GUID
 
 	// 3. Create a game.
-	gameGUID := c.CreateNewGame(command.CreateNewGameCommand{
-		Name:        "Game 1",
-		ProjectGUID: projectGUID,
+	testProject.gameGuid = c.CreateNewGame(command.CreateNewGameCommand{
+		Name:        testProject.gameName,
+		ProjectGUID: testProject.projectGuid,
 	}).GUID
 
 	// 4. Create a match.
-	matchGUID := c.CreateNewMatch(command.CreateNewMatchCommand{
-		GameGUID:    gameGUID,
-		ProjectGUID: projectGUID,
+	testProject.matchGuid = c.CreateNewMatch(command.CreateNewMatchCommand{
+		GameGUID:    testProject.gameGuid,
+		ProjectGUID: testProject.projectGuid,
 		Teams: []struct {
 			PlayerGUIDs []string
 			Score       int
 		}{
-			{Score: 1, PlayerGUIDs: []string{player1GUID}},
-			{Score: 2, PlayerGUIDs: []string{player2GUID}},
+			{Score: testProject.player1Score, PlayerGUIDs: []string{testProject.player1Guid}},
+			{Score: testProject.player2Score, PlayerGUIDs: []string{testProject.player1Guid}},
 		},
 	}).GUID
 
 	time.Sleep(time.Second * 1)
 
-	// Check stuff...
-	assert.NotEmpty(t, projectGUID)
-	assert.NotEmpty(t, player1GUID)
-	assert.NotEmpty(t, player2GUID)
-	assert.NotEmpty(t, gameGUID)
-	assert.NotEmpty(t, matchGUID)
+	checkCommandResults(t, testProject)
+	checkQuery(t, q, testProject)
 
+}
+
+func checkCommandResults(t *testing.T, testProject basicProject) {
+	assert.NotEmpty(t, testProject.projectGuid)
+	assert.NotEmpty(t, testProject.player1Guid)
+	assert.NotEmpty(t, testProject.player2Guid)
+	assert.NotEmpty(t, testProject.gameGuid)
+	assert.NotEmpty(t, testProject.matchGuid)
+}
+
+func checkQuery(t *testing.T, q *query.Compelo, testProject basicProject) {
+	checkQueryGetProjects(t, q, testProject)
+	checkQueryGetPlayersBy(t, q, testProject)
+	checkQueryGetGamesBy(t, q, testProject)
+	checkQueryGetMatchesBy(t, q, testProject)
+
+	checkQueryGetProjectBy(t, q, testProject)
+	checkQueryGetGameBy(t, q, testProject)
+	// player1 := q.GetPlayerBy(projectGUID, player1GUID)
+	// player2 := q.GetPlayerBy(projectGUID, player2GUID)
+	// match := q.GetMatchBy(projectGUID, gameGUID, matchGUID)
+	// ratingPlayer1 := q.GetRatingBy(projectGUID, player1GUID, gameGUID)
+	// ratingPlayer2 := q.GetRatingBy(projectGUID, player2GUID, gameGUID)
+
+	// assert.NotEmpty(t, project)
+	// assert.Equal(t, project.Name, "Project 1")
+
+	// assert.NotEmpty(t, game)
+	// assert.Equal(t, game.ProjectGUID, projectGUID)
+	// assert.Equal(t, game.Name, "Game 1")
+
+	// assert.NotEmpty(t, player1)
+	// assert.Equal(t, player1.ProjectGUID, projectGUID)
+	// assert.Equal(t, player1.Name, "Player 1")
+
+	// assert.NotEmpty(t, player2)
+	// assert.Equal(t, player2.ProjectGUID, projectGUID)
+	// assert.Equal(t, player2.Name, "Player 2")
+
+	// assert.NotEmpty(t, match)
+	// assert.Equal(t, match.GameGUID, gameGUID)
+	// assert.Equal(t, match.ProjectGUID, projectGUID)
+	// assert.Len(t, match.Teams, 2)
+	// assert.Len(t, match.Teams[0].Players, 1)
+	// assert.Len(t, match.Teams[1].Players, 1)
+
+	// assert.Equal(t, match.Teams[0].Score, 1)
+	// assert.Equal(t, match.Teams[0].Result, query.Loss)
+	// assert.Equal(t, match.Teams[0].RatingDelta, -16)
+
+	// assert.Equal(t, match.Teams[1].Score, 2)
+	// assert.Equal(t, match.Teams[1].Result, query.Win)
+	// assert.Equal(t, match.Teams[1].RatingDelta, 16)
+
+	// assert.Equal(t, 1484, ratingPlayer1.Current)
+	// assert.Equal(t, 1516, ratingPlayer2.Current)
+}
+
+func checkQueryGetProjects(t *testing.T, q *query.Compelo, testProject basicProject) {
 	assert.Len(t, q.GetProjects(), 2)
-	assert.Len(t, q.GetPlayersBy(projectGUID), 2)
-	assert.Len(t, q.GetGamesBy(projectGUID), 1)
-	assert.Len(t, q.GetMatchesBy(projectGUID, gameGUID), 1)
+}
 
-	project, err := q.GetProjectBy(projectGUID)
+func checkQueryGetPlayersBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	players, err := q.GetPlayersBy(testProject.projectGuid)
+	assert.Len(t, players, 2)
 	assert.Nil(t, err)
 
-	game := q.GetGameBy(projectGUID, gameGUID)
-	player1 := q.GetPlayerBy(projectGUID, player1GUID)
-	player2 := q.GetPlayerBy(projectGUID, player2GUID)
-	match := q.GetMatchBy(projectGUID, gameGUID, matchGUID)
-	ratingPlayer1 := q.GetRatingBy(projectGUID, player1GUID, gameGUID)
-	ratingPlayer2 := q.GetRatingBy(projectGUID, player2GUID, gameGUID)
+	players, err = q.GetPlayersBy("404")
+	assert.Nil(t, players)
+	assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+}
 
-	assert.NotEmpty(t, project)
-	assert.Equal(t, project.Name, "Project 1")
+func checkQueryGetGamesBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	games, err := q.GetGamesBy(testProject.projectGuid)
+	assert.Len(t, games, 1)
+	assert.Nil(t, err)
 
-	assert.NotEmpty(t, game)
-	assert.Equal(t, game.ProjectGUID, projectGUID)
-	assert.Equal(t, game.Name, "Game 1")
+	games, err = q.GetGamesBy("404")
+	assert.Nil(t, games)
+	assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+}
 
-	assert.NotEmpty(t, player1)
-	assert.Equal(t, player1.ProjectGUID, projectGUID)
-	assert.Equal(t, player1.Name, "Player 1")
+func checkQueryGetMatchesBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	matches, err := q.GetMatchesBy(testProject.projectGuid, testProject.gameGuid)
+	assert.Len(t, matches, 1)
+	assert.Nil(t, err)
 
-	assert.NotEmpty(t, player2)
-	assert.Equal(t, player2.ProjectGUID, projectGUID)
-	assert.Equal(t, player2.Name, "Player 2")
+	matches, err = q.GetMatchesBy("404", testProject.gameGuid)
+	assert.Nil(t, matches)
+	assert.True(t, errors.Is(err, query.ErrProjectNotFound))
 
-	assert.NotEmpty(t, match)
-	assert.Equal(t, match.GameGUID, gameGUID)
-	assert.Equal(t, match.ProjectGUID, projectGUID)
-	assert.Len(t, match.Teams, 2)
-	assert.Len(t, match.Teams[0].Players, 1)
-	assert.Len(t, match.Teams[1].Players, 1)
+	matches, err = q.GetMatchesBy(testProject.projectGuid, "404")
+	assert.Nil(t, matches)
+	assert.True(t, errors.Is(err, query.ErrGameNotFound))
+}
 
-	assert.Equal(t, match.Teams[0].Score, 1)
-	assert.Equal(t, match.Teams[0].Result, query.Loss)
-	assert.Equal(t, match.Teams[0].RatingDelta, -16)
+func checkQueryGetProjectBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	project, err := q.GetProjectBy(testProject.projectGuid)
+	assert.NotNil(t, project)
+	assert.Equal(t, testProject.projectName, project.Name)
+	assert.Nil(t, err)
 
-	assert.Equal(t, match.Teams[1].Score, 2)
-	assert.Equal(t, match.Teams[1].Result, query.Win)
-	assert.Equal(t, match.Teams[1].RatingDelta, 16)
+	project, err = q.GetProjectBy("404")
+	assert.Nil(t, project)
+	assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+}
 
-	assert.Equal(t, 1484, ratingPlayer1.Current)
-	assert.Equal(t, 1516, ratingPlayer2.Current)
+func checkQueryGetGameBy(t *testing.T, q *query.Compelo, testProject basicProject) {
+	game, err := q.GetGameBy(testProject.projectGuid, testProject.gameGuid)
+	assert.NotNil(t, game)
+	assert.Equal(t, testProject.gameName, game.Name)
+	assert.Nil(t, err)
+
+	game, err = q.GetGameBy("404", testProject.gameGuid)
+	assert.Nil(t, game)
+	assert.True(t, errors.Is(err, query.ErrProjectNotFound))
+
+	game, err = q.GetGameBy(testProject.projectGuid, "404")
+	assert.Nil(t, game)
+	assert.True(t, errors.Is(err, query.ErrGameNotFound))
 }

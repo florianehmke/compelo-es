@@ -1,21 +1,41 @@
 package query
 
-func (c *Compelo) GetPlayersBy(projectGUID string) []Player {
+import (
+	"errors"
+	"fmt"
+)
+
+var ErrPlayerNotFound = errors.New("player not found")
+
+func (c *Compelo) GetPlayersBy(projectGUID string) ([]*Player, error) {
 	c.RLock()
 	defer c.RUnlock()
 
-	list := make([]Player, 0, len(c.projects[projectGUID].players))
-	for _, value := range c.projects[projectGUID].players {
-		list = append(list, *value)
+	project, err := c.getProjectBy(projectGUID)
+	if err != nil {
+		return nil, fmt.Errorf("get players failed: %w", err)
 	}
 
-	return list
+	list := make([]*Player, 0, len(project.players))
+	for _, value := range project.players {
+		list = append(list, value)
+	}
+
+	return list, nil
 }
 
-func (c *Compelo) GetPlayerBy(projectGUID string, playerGUID string) Player {
+func (c *Compelo) GetPlayerBy(projectGUID string, playerGUID string) (*Player, error) {
 	c.RLock()
 	defer c.RUnlock()
 
-	// TODO: Handle not found
-	return *c.projects[projectGUID].players[playerGUID]
+	project, err := c.getProjectBy(projectGUID)
+	if err != nil {
+		return nil, fmt.Errorf("get player failed: %w", err)
+	}
+
+	if player, ok := project.players[playerGUID]; ok {
+		return player, nil
+	} else {
+		return nil, fmt.Errorf("get player by guid (%s) failed: %w", playerGUID, ErrPlayerNotFound)
+	}
 }
