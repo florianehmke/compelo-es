@@ -90,6 +90,8 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	player1 := q.GetPlayerBy(projectGUID, player1GUID)
 	player2 := q.GetPlayerBy(projectGUID, player2GUID)
 	match := q.GetMatchBy(projectGUID, gameGUID, matchGUID)
+	ratingPlayer1 := q.GetRatingBy(projectGUID, player1GUID, gameGUID)
+	ratingPlayer2 := q.GetRatingBy(projectGUID, player2GUID, gameGUID)
 
 	assert.NotEmpty(t, project)
 	assert.Equal(t, project.Name, "Project 1")
@@ -120,4 +122,7 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	assert.Equal(t, match.Teams[1].Score, 2)
 	assert.Equal(t, match.Teams[1].Result, query.Win)
 	assert.Equal(t, match.Teams[1].RatingDelta, 16)
+
+	assert.Equal(t, 1484, ratingPlayer1.Current)
+	assert.Equal(t, 1516, ratingPlayer2.Current)
 }

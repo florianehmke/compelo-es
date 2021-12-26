@@ -23,10 +23,10 @@ type Match struct {
 }
 
 type Team struct {
-	Players     []Player    `json:"players"`
-	Score       int         `json:"score"`
-	Result      Result      `json:"result"`
-	RatingDelta interface{} `json:"ratingDelta"`
+	Players     []Player `json:"players"`
+	Score       int      `json:"score"`
+	Result      Result   `json:"result"`
+	RatingDelta int      `json:"ratingDelta"`
 }
 
 func (m *Match) determineResult() {
@@ -55,16 +55,12 @@ func (m *Match) determineResult() {
 	}
 }
 
-func (m *Match) calculateTeamElo(c *Compelo) {
+func (m *Match) calculateTeamElo(ratings map[string]int) {
 	rm := rating.NewRatedMatch()
 	for i, t := range m.Teams {
 		sum := 0
 		for _, p := range t.Players {
-			r := c.getRatingBy(m.ProjectGUID, p.GUID, m.GameGUID)
-			if r.Current == 0 {
-				r.Current = rating.InitialRating
-			}
-			sum += r.Current
+			sum += ratings[p.GUID]
 		}
 		avg := sum / len(t.Players)
 
