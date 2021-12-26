@@ -6,10 +6,6 @@ import (
 	"sync"
 )
 
-type Handler interface {
-	on(e event.Event)
-}
-
 type Compelo struct {
 	projects map[string]Project
 
@@ -37,7 +33,7 @@ func (c *Compelo) on(e event.Event) {
 	c.Lock()
 	defer c.Unlock()
 
-	log.Println("[Root Handler] Handling event ", e.GetID(), e.EventType())
+	log.Println("Query handling event ", e.GetID(), e.EventType())
 
 	switch e := e.(type) {
 	case *event.ProjectCreated:
