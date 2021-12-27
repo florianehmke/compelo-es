@@ -2,6 +2,7 @@ package query
 
 import (
 	"compelo/event"
+	"log"
 )
 
 func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
@@ -13,9 +14,11 @@ func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
 		for _, guid := range t.PlayerGUIDs {
 			players = append(players, c.projects[e.ProjectGUID].players[guid])
 
-			// error intentionally ignored here
-			rating, _ := c.getRatingBy(e.ProjectGUID, guid, e.GameGUID)
-			ratings[guid] = rating
+			if rating, err := c.getRatingBy(e.ProjectGUID, guid, e.GameGUID); err != nil {
+				ratings[guid] = rating
+			} else {
+				log.Fatalf("unexpected error in handler: %s", err.Error())
+			}
 		}
 
 		teams = append(teams, &Team{
