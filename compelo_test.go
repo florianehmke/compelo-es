@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -94,8 +93,6 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 		},
 	}).GUID
 
-	time.Sleep(time.Second * 1)
-
 	checkCommandResults(t, testProject)
 	checkQuery(t, q, testProject)
 
@@ -120,43 +117,6 @@ func checkQuery(t *testing.T, q *query.Compelo, testProject basicProject) {
 	checkQueryGetPlayerBy(t, q, testProject)
 	checkQueryGetMatchBy(t, q, testProject)
 	checkQueryGetRatingBy(t, q, testProject)
-
-	// match := q.GetMatchBy(projectGUID, gameGUID, matchGUID)
-	// ratingPlayer1 := q.GetRatingBy(projectGUID, player1GUID, gameGUID)
-	// ratingPlayer2 := q.GetRatingBy(projectGUID, player2GUID, gameGUID)
-
-	// assert.NotEmpty(t, project)
-	// assert.Equal(t, project.Name, "Project 1")
-
-	// assert.NotEmpty(t, game)
-	// assert.Equal(t, game.ProjectGUID, projectGUID)
-	// assert.Equal(t, game.Name, "Game 1")
-
-	// assert.NotEmpty(t, player1)
-	// assert.Equal(t, player1.ProjectGUID, projectGUID)
-	// assert.Equal(t, player1.Name, "Player 1")
-
-	// assert.NotEmpty(t, player2)
-	// assert.Equal(t, player2.ProjectGUID, projectGUID)
-	// assert.Equal(t, player2.Name, "Player 2")
-
-	// assert.NotEmpty(t, match)
-	// assert.Equal(t, match.GameGUID, gameGUID)
-	// assert.Equal(t, match.ProjectGUID, projectGUID)
-	// assert.Len(t, match.Teams, 2)
-	// assert.Len(t, match.Teams[0].Players, 1)
-	// assert.Len(t, match.Teams[1].Players, 1)
-
-	// assert.Equal(t, match.Teams[0].Score, 1)
-	// assert.Equal(t, match.Teams[0].Result, query.Loss)
-	// assert.Equal(t, match.Teams[0].RatingDelta, -16)
-
-	// assert.Equal(t, match.Teams[1].Score, 2)
-	// assert.Equal(t, match.Teams[1].Result, query.Win)
-	// assert.Equal(t, match.Teams[1].RatingDelta, 16)
-
-	// assert.Equal(t, 1484, ratingPlayer1.Current)
-	// assert.Equal(t, 1516, ratingPlayer2.Current)
 }
 
 func checkQueryGetProjects(t *testing.T, q *query.Compelo, testProject basicProject) {
@@ -200,8 +160,8 @@ func checkQueryGetMatchesBy(t *testing.T, q *query.Compelo, testProject basicPro
 func checkQueryGetProjectBy(t *testing.T, q *query.Compelo, testProject basicProject) {
 	project, err := q.GetProjectBy(testProject.projectGuid)
 	assert.NotNil(t, project)
-	assert.Equal(t, testProject.projectName, project.Name)
 	assert.Nil(t, err)
+	assert.Equal(t, testProject.projectName, project.Name)
 
 	project, err = q.GetProjectBy("404")
 	assert.Nil(t, project)
@@ -211,8 +171,9 @@ func checkQueryGetProjectBy(t *testing.T, q *query.Compelo, testProject basicPro
 func checkQueryGetGameBy(t *testing.T, q *query.Compelo, testProject basicProject) {
 	game, err := q.GetGameBy(testProject.projectGuid, testProject.gameGuid)
 	assert.NotNil(t, game)
-	assert.Equal(t, testProject.gameName, game.Name)
 	assert.Nil(t, err)
+	assert.Equal(t, testProject.gameName, game.Name)
+	assert.Equal(t, testProject.projectGuid, game.ProjectGUID)
 
 	game, err = q.GetGameBy("404", testProject.gameGuid)
 	assert.Nil(t, game)
@@ -227,8 +188,9 @@ func checkQueryGetPlayerBy(t *testing.T, q *query.Compelo, testProject basicProj
 	for _, p := range testProject.players {
 		player, err := q.GetPlayerBy(testProject.projectGuid, p.guid)
 		assert.NotNil(t, player)
-		assert.Equal(t, p.name, player.Name)
 		assert.Nil(t, err)
+		assert.Equal(t, p.name, player.Name)
+		assert.Equal(t, testProject.projectGuid, player.ProjectGUID)
 
 		player, err = q.GetPlayerBy("404", testProject.gameGuid)
 		assert.Nil(t, player)
@@ -244,6 +206,19 @@ func checkQueryGetMatchBy(t *testing.T, q *query.Compelo, testProject basicProje
 	match, err := q.GetMatchBy(testProject.projectGuid, testProject.gameGuid, testProject.matchGuid)
 	assert.NotNil(t, match)
 	assert.Nil(t, err)
+	assert.Equal(t, testProject.gameGuid, match.GameGUID)
+	assert.Equal(t, testProject.projectGuid, match.ProjectGUID)
+	assert.Len(t, match.Teams, 2)
+	assert.Len(t, match.Teams[0].Players, 1)
+	assert.Len(t, match.Teams[1].Players, 1)
+
+	assert.Equal(t, 1, match.Teams[0].Score)
+	assert.Equal(t, query.Loss, match.Teams[0].Result)
+	assert.Equal(t, -16, match.Teams[0].RatingDelta)
+
+	assert.Equal(t, 2, match.Teams[1].Score)
+	assert.Equal(t, query.Win, match.Teams[1].Result)
+	assert.Equal(t, 16, match.Teams[1].RatingDelta)
 
 	match, err = q.GetMatchBy("404", testProject.gameGuid, testProject.matchGuid)
 	assert.Nil(t, match)

@@ -9,6 +9,7 @@ type Bus struct {
 	mu     sync.RWMutex
 	subs   []chan Event
 	closed bool
+	wg     sync.WaitGroup
 }
 
 func NewBus() *Bus {
@@ -27,18 +28,23 @@ func (bus *Bus) Publish(event Event) {
 
 	for _, ch := range bus.subs {
 		log.Println("Publishing", event.EventType())
+		bus.wg.Add(1)
 		ch <- event
 	}
+	bus.wg.Wait()
 }
 
 func (bus *Bus) Subscribe() <-chan Event {
 	bus.mu.Lock()
 	defer bus.mu.Unlock()
 
-	// TODO: This is far from optimal.
-	ch := make(chan Event, 100)
+	ch := make(chan Event)
 	bus.subs = append(bus.subs, ch)
 	return ch
+}
+
+func (bus *Bus) MessageProcessed() {
+	bus.wg.Done()
 }
 
 func (bus *Bus) Close() {

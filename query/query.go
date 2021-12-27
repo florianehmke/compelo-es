@@ -30,6 +30,8 @@ func New(bus *event.Bus) *Compelo {
 }
 
 func (c *Compelo) on(e event.Event) {
+	defer c.bus.MessageProcessed()
+
 	c.Lock()
 	defer c.Unlock()
 
