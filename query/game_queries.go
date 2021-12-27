@@ -32,9 +32,6 @@ func (c *Compelo) GetGameBy(projectGUID string, gameGUID string) (*Game, error) 
 }
 
 func (c *Compelo) getGameBy(projectGUID string, gameGUID string) (*Game, error) {
-	c.RLock()
-	defer c.RUnlock()
-
 	project, err := c.getProjectBy(projectGUID)
 	if err != nil {
 		return nil, fmt.Errorf("get game failed: %w", err)
