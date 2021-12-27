@@ -1,7 +1,7 @@
 package command
 
 // Project is a single project in compelo.
-type Project struct {
+type project struct {
 	guid string
 
 	name         string
@@ -9,8 +9,4 @@ type Project struct {
 
 	players map[string]player
 	games   map[string]game
-}
-
-func (c *Compelo) Projects() map[string]Project {
-	return c.projects
 }

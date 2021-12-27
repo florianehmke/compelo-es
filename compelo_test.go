@@ -63,26 +63,32 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 	}
 
 	// 1. Create a project.
-	testProject.projectGuid = c.CreateNewProject(command.CreateNewProjectCommand{
+	response, err := c.CreateNewProject(command.CreateNewProjectCommand{
 		Name: testProject.projectName,
-	}).GUID
+	})
+	assert.Nil(t, err)
+	testProject.projectGuid = response.GUID
 
 	// 2. Create two players.
 	for _, p := range testProject.players {
-		p.guid = c.CreateNewPlayer(command.CreateNewPlayerCommand{
+		response, err := c.CreateNewPlayer(command.CreateNewPlayerCommand{
 			Name:        p.name,
 			ProjectGUID: testProject.projectGuid,
-		}).GUID
+		})
+		assert.Nil(t, err)
+		p.guid = response.GUID
 	}
 
 	// 3. Create a game.
-	testProject.gameGuid = c.CreateNewGame(command.CreateNewGameCommand{
+	response, err = c.CreateNewGame(command.CreateNewGameCommand{
 		Name:        testProject.gameName,
 		ProjectGUID: testProject.projectGuid,
-	}).GUID
+	})
+	assert.Nil(t, err)
+	testProject.gameGuid = response.GUID
 
 	// 4. Create a match.
-	testProject.matchGuid = c.CreateNewMatch(command.CreateNewMatchCommand{
+	response, err = c.CreateNewMatch(command.CreateNewMatchCommand{
 		GameGUID:    testProject.gameGuid,
 		ProjectGUID: testProject.projectGuid,
 		Teams: []struct {
@@ -92,7 +98,9 @@ func testBasicWorkflow(t *testing.T, c *command.Compelo, q *query.Compelo) {
 			{Score: testProject.players[0].score, PlayerGUIDs: []string{testProject.players[0].guid}},
 			{Score: testProject.players[1].score, PlayerGUIDs: []string{testProject.players[1].guid}},
 		},
-	}).GUID
+	})
+	assert.Nil(t, err)
+	testProject.matchGuid = response.GUID
 
 	checkCommandResults(t, testProject)
 	checkQuery(t, q, testProject)

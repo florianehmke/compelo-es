@@ -2,7 +2,7 @@ package command
 
 import (
 	"compelo/event"
-	"log"
+	"fmt"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -13,25 +13,33 @@ type CreateNewProjectCommand struct {
 	Password string `json:"password"`
 }
 
-func (c *Compelo) CreateNewProject(cmd CreateNewProjectCommand) Response {
+func (c *Compelo) CreateNewProject(cmd CreateNewProjectCommand) (Response, error) {
 	c.Lock()
 	defer c.Unlock()
 
-	// TODO: Check if name is already taken.
+	if err := c.checkUniqueConstraint(cmd.Name); err != nil {
+		return Response{}, fmt.Errorf("project name is taken: %w", err)
+	}
 
 	guid := uuid.New().String()
+	hash, err := hashAndSalt([]byte(cmd.Password))
+	if err != nil {
+		return Response{}, fmt.Errorf("cannot create project due to invalid password: %w", err)
+	}
+
 	c.raise(&event.ProjectCreated{
 		GUID:         guid,
 		Name:         cmd.Name,
-		PasswordHash: hashAndSalt([]byte(cmd.Password)),
+		PasswordHash: hash,
 	})
-	return Response{GUID: guid}
+
+	return Response{GUID: guid}, nil
 }
 
-func hashAndSalt(pwd []byte) []byte {
+func hashAndSalt(pwd []byte) ([]byte, error) {
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
 	if err != nil {
-		log.Println(err) // TODO: Handle me
+		return nil, fmt.Errorf("password hashing failed: %w", err)
 	}
-	return hash
+	return hash, nil
 }

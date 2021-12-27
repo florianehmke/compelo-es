@@ -3,7 +3,7 @@ package command
 import "compelo/event"
 
 func (c *Compelo) handleProjectCreated(e *event.ProjectCreated) {
-	c.projects[e.GUID] = Project{
+	c.projects[e.GUID] = project{
 		guid:         e.GUID,
 		name:         e.Name,
 		passwordHash: e.PasswordHash,

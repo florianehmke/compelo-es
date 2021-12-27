@@ -16,9 +16,11 @@ type CreateNewMatchCommand struct {
 	} `json:"teams"`
 }
 
-func (c *Compelo) CreateNewMatch(cmd CreateNewMatchCommand) Response {
+func (c *Compelo) CreateNewMatch(cmd CreateNewMatchCommand) (Response, error) {
 	c.Lock()
 	defer c.Unlock()
+
+	// TODO: validate event
 
 	guid := uuid.New().String()
 	c.raise(&event.MatchCreated{
@@ -28,5 +30,5 @@ func (c *Compelo) CreateNewMatch(cmd CreateNewMatchCommand) Response {
 		Date:        time.Now(),
 		Teams:       cmd.Teams,
 	})
-	return Response{GUID: guid}
+	return Response{GUID: guid}, nil
 }

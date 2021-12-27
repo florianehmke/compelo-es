@@ -2,6 +2,7 @@ package command
 
 import (
 	"compelo/event"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -11,11 +12,13 @@ type CreateNewGameCommand struct {
 	Name        string `json:"name"`
 }
 
-func (c *Compelo) CreateNewGame(cmd CreateNewGameCommand) Response {
+func (c *Compelo) CreateNewGame(cmd CreateNewGameCommand) (Response, error) {
 	c.Lock()
 	defer c.Unlock()
 
-	// TODO: Check if name is already taken.
+	if err := c.checkUniqueConstraint(cmd.ProjectGUID + ":" + cmd.Name); err != nil {
+		return Response{}, fmt.Errorf("game name is taken: %w", err)
+	}
 
 	guid := uuid.New().String()
 	c.raise(&event.GameCreated{
@@ -23,5 +26,5 @@ func (c *Compelo) CreateNewGame(cmd CreateNewGameCommand) Response {
 		ProjectGUID: cmd.ProjectGUID,
 		Name:        cmd.Name,
 	})
-	return Response{GUID: guid}
+	return Response{GUID: guid}, nil
 }

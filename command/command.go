@@ -2,12 +2,14 @@ package command
 
 import (
 	"compelo/event"
+	"fmt"
 	"log"
 	"sync"
 )
 
 type Compelo struct {
-	projects map[string]Project
+	projects map[string]project
+	uniqueConstraints
 
 	sync.RWMutex
 	changes []event.Event
@@ -16,13 +18,12 @@ type Compelo struct {
 }
 
 type Response struct {
-	Error error  `json:"error"`
-	GUID  string `json:"guid"`
+	GUID string `json:"guid"`
 }
 
 func New(store *event.Store, events []event.Event) *Compelo {
 	p := &Compelo{
-		projects: make(map[string]Project),
+		projects: make(map[string]project),
 		store:    store,
 	}
 
@@ -50,9 +51,12 @@ func (c *Compelo) on(e event.Event) {
 }
 
 func (c *Compelo) raise(event event.Event) error {
-	// TODO: Handle error
 	c.changes = append(c.changes, event)
 	c.on(event)
-	c.store.StoreEvent(event)
+
+	if err := c.store.StoreEvent(event); err != nil {
+		return fmt.Errorf("storing event failed: %w", err)
+	}
+
 	return nil
 }
