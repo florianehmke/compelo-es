@@ -14,7 +14,7 @@ func (c *Compelo) handleMatchCreated(e *event.MatchCreated) {
 		for _, guid := range t.PlayerGUIDs {
 			players = append(players, c.projects[e.ProjectGUID].players[guid])
 
-			if rating, err := c.getRatingBy(e.ProjectGUID, guid, e.GameGUID); err != nil {
+			if rating, err := c.getRatingBy(e.ProjectGUID, guid, e.GameGUID); err == nil {
 				ratings[guid] = rating
 			} else {
 				log.Fatalf("unexpected error in handler: %s", err.Error())

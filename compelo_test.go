@@ -42,7 +42,8 @@ func Test(t *testing.T) {
 	query := query.New(bus)
 
 	// Load all events from db (rehydrates queries).
-	events := store.LoadEvents()
+	events, err := store.LoadEvents()
+	assert.Nil(t, err)
 
 	// Setup command (from existing events).
 	command := command.New(store, events)

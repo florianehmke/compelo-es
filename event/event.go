@@ -1,5 +1,13 @@
 package event
 
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+)
+
+var ErrEventUnmarshalFailed = errors.New("unmarshal of event failed")
+
 type EventType string
 
 // Event is a domain event marker.
@@ -7,7 +15,26 @@ type Event interface {
 	EventType() EventType
 	SetID(uint64)
 	GetID() uint64
-	UnmarshalFn() func([]byte) Event
+}
+
+func (et EventType) Unmarshal(data []byte) (Event, error) {
+	var target Event
+	switch et {
+	case PlayerCreatedType:
+		target = &PlayerCreated{}
+	case GameCreatedType:
+		target = &GameCreated{}
+	case ProjectCreatedType:
+		target = &ProjectCreated{}
+	case MatchCreatedType:
+		target = &MatchCreated{}
+	}
+
+	if err := json.Unmarshal(data, &target); err != nil {
+		return nil, fmt.Errorf("unmarshal failed: %w", err)
+	}
+
+	return target, nil
 }
 
 // EventMetaData contains common meta data for Events.

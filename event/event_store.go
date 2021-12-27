@@ -3,10 +3,13 @@ package event
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"go.etcd.io/bbolt"
 )
+
+const eventsBucket = "events"
 
 type RawEvent struct {
 	ID        uint64          `json:"id"`
@@ -28,23 +31,14 @@ func NewStore(bus *Bus, path string) *Store {
 	}
 
 	store := &Store{db: db, bus: bus}
-	store.RegisterEvents()
 	return store
 }
 
-func (s *Store) RegisterEvents() {
-	s.unmarshalFns = make(map[EventType]func([]byte) Event)
-	s.unmarshalFns[ProjectCreatedType] = (&ProjectCreated{}).UnmarshalFn()
-	s.unmarshalFns[GameCreatedType] = (&GameCreated{}).UnmarshalFn()
-	s.unmarshalFns[PlayerCreatedType] = (&PlayerCreated{}).UnmarshalFn()
-	s.unmarshalFns[MatchCreatedType] = (&MatchCreated{}).UnmarshalFn()
-}
-
-func (s *Store) StoreEvent(event Event) {
-	s.db.Update(func(tx *bbolt.Tx) error {
+func (s *Store) StoreEvent(event Event) error {
+	err := s.db.Update(func(tx *bbolt.Tx) error {
 		// Open the events bucket.
-		tx.CreateBucketIfNotExists([]byte("events"))
-		b := tx.Bucket([]byte("events"))
+		tx.CreateBucketIfNotExists([]byte(eventsBucket))
+		b := tx.Bucket([]byte(eventsBucket))
 
 		// Generate ID for the event.
 		id, _ := b.NextSequence()
@@ -52,7 +46,7 @@ func (s *Store) StoreEvent(event Event) {
 
 		eventData, err := json.Marshal(event)
 		if err != nil {
-			log.Fatal(err) // TODO: Handle me.
+			return fmt.Errorf("marshal of event data failed: %w", err)
 		}
 
 		rawEvent := RawEvent{
@@ -63,7 +57,7 @@ func (s *Store) StoreEvent(event Event) {
 
 		buf, err := json.Marshal(rawEvent)
 		if err != nil {
-			log.Fatal(err) // TODO: Handle me.
+			return fmt.Errorf("marshal of raw event failed: %w", err)
 		}
 		log.Println("Saving Event: " + string(buf))
 
@@ -71,32 +65,43 @@ func (s *Store) StoreEvent(event Event) {
 		return b.Put(itob(id), buf)
 	})
 
-	s.bus.Publish(event)
+	if err == nil {
+		s.bus.Publish(event)
+	}
+
+	return err
 }
 
-func (s *Store) LoadEvents() []Event {
+func (s *Store) LoadEvents() ([]Event, error) {
 	var events []Event
-
-	s.db.View(func(tx *bbolt.Tx) error {
-		// TODO: Check if bucket exists.
-		b := tx.Bucket([]byte("events"))
+	err := s.db.View(func(tx *bbolt.Tx) error {
+		tx.CreateBucketIfNotExists([]byte(eventsBucket))
+		b := tx.Bucket([]byte(eventsBucket))
 		c := b.Cursor()
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			var rawEvent *RawEvent
 			err := json.Unmarshal(v, &rawEvent)
 			if err != nil {
-				log.Fatal(err) // TODO: Handle me.
+				return fmt.Errorf("unmarshal of raw event failed: %w", err)
 			}
 
-			event := s.unmarshalFns[rawEvent.EventType](rawEvent.EventData)
-			events = append(events, event)
-			log.Println("Loaded event", event.EventType())
-			s.bus.Publish(event)
+			if event, err := rawEvent.EventType.Unmarshal(rawEvent.EventData); err == nil {
+				events = append(events, event)
+			} else {
+				return fmt.Errorf("unmarshal of event data failed: %w", err)
+			}
 		}
 		return nil
 	})
-	return events
+
+	if err == nil {
+		for _, e := range events {
+			s.bus.Publish(e)
+		}
+	}
+
+	return events, err
 }
 
 // itob returns an 8-byte big endian representation of v.
